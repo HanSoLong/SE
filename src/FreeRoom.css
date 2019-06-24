@@ -1,0 +1,12 @@
+#selectContainer
+{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.roomselect
+{
+    margin-right: 20px;
+    width: 200px;
+}
