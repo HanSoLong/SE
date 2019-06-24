@@ -9,6 +9,7 @@ const buildingOption = [
     { value: 'building_2', label: '第二教学楼' },
     { value: 'building_3', label: '第三教学楼' },
     { value: 'building_4', label: '第四教学楼' },
+    {value: 'None', label: '不限'}
   ];
 
 const weekOption = [
@@ -17,6 +18,7 @@ const weekOption = [
     {value: 'Wednesday', label: '周三'},
     {value: 'Thursday', label: '周四'},
     {value: 'Friday', label: '周五'},
+    {value: 'None', label: '不限'}
 ];
 
 class FreeRoom extends React.Component{
@@ -27,6 +29,8 @@ class FreeRoom extends React.Component{
             buildingValue: null,
             weekValue: null,
             semesterOption: null,
+            freeRooms: [],
+            searchErrorTip: false,
         };
     }
 
@@ -34,7 +38,6 @@ class FreeRoom extends React.Component{
         this.setState({
             buildingValue: selectedOptions
         });
-        console.log(this.state.buildingValue)
     }
 
     weekHandler = selectedOptions =>{
@@ -43,7 +46,21 @@ class FreeRoom extends React.Component{
         });
     }
 
+    sumbitSearch = ()=>{
+        if((this.state.weekValue || this.state.buildingValue) && (this.state.weekValue.value!=='None' || this.state.buildingValue.value!=='None')){
+            this.setState({
+                searchErrorTip: false
+            })
+            //submit
+        }else{
+            this.setState({
+                searchErrorTip: true
+            })
+        }
+    }
+
     render(){
+        const freeRoomListItem = this.state.freeRooms.map((room)=><ListGroup.Item>{room}</ListGroup.Item>)
         return(
             <div>
                 <div id='selectContainer'>
@@ -56,15 +73,11 @@ class FreeRoom extends React.Component{
                     value={this.state.weekValue}
                     onChange={this.weekHandler}
                     options = {weekOption}/>
-
-                    <Button variant="primary">查找</Button>
+                    <Button variant="primary" onClick={this.sumbitSearch}>查找</Button>
+                    {this.state.searchErrorTip && <p>搜索条件不能为空</p>}
                 </div>
                 <ListGroup>
-                    <ListGroup.Item>Cras justo odio</ListGroup.Item>
-                    <ListGroup.Item>Dapibus ac facilisis in</ListGroup.Item>
-                    <ListGroup.Item>Morbi leo risus</ListGroup.Item>
-                    <ListGroup.Item>Porta ac consectetur ac</ListGroup.Item>
-                    <ListGroup.Item>Vestibulum at eros</ListGroup.Item>
+                    {freeRoomListItem}
                 </ListGroup>
                 
             </div>
