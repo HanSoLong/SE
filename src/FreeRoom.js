@@ -49,7 +49,8 @@ class FreeRoom extends React.Component{
     sumbitSearch = ()=>{
         if((this.state.weekValue || this.state.buildingValue) && (this.state.weekValue.value!=='None' || this.state.buildingValue.value!=='None')){
             this.setState({
-                searchErrorTip: false
+                searchErrorTip: false,
+                freeRooms: ['121','212']
             })
             //submit
         }else{
@@ -63,7 +64,7 @@ class FreeRoom extends React.Component{
         const freeRoomListItem = this.state.freeRooms.map((room)=><ListGroup.Item>{room}</ListGroup.Item>)
         return(
             <div>
-                <div id='selectContainer'>
+                <div className='selectContainer'>
                     <Select className='roomselect'
                     value={this.state.buildingValue}
                     onChange={this.buildingHandler}

@@ -1,9 +1,3 @@
-.main_content
-{
-    margin:0;
-    padding:0;
-}
-
 #top_bar
 {
     display: flex;
@@ -11,11 +5,22 @@
     align-items: center;
 }
 
+#username
+{
+    margin: 0;
+    width: auto;
+    height: auto;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
 #head
 {
     display: flex;
+    flex-direction: row-reverse;
     justify-content: center;
-    align-items: center
+    align-items: center;
 }
 
 #options

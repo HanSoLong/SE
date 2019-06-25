@@ -1,0 +1,38 @@
+.componentContainer
+{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+}
+
+.contentContainer
+{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+}
+
+.input-group
+{
+    width: 200px !important;
+    margin: 10px 
+}
+
+.searchResult
+{
+
+}
+
+.select
+{
+    margin: 10px;
+    width: 200px;
+}
+
+.selectinput
+{
+    margin-right: 20px;
+    width: auto;
+}
