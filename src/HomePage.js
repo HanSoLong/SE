@@ -6,14 +6,18 @@ import InputGroup from 'react-bootstrap/InputGroup'
 import FormControl from 'react-bootstrap/FormControl'
 import Button from 'react-bootstrap/Button';
 import Classes from './Classes'
+import ClassComments from './ClassComments';
+import Card from 'react-bootstrap/Card'
+import RegisterPage from './RegisterPage'
+import PersonalCenter from './PersonalCenter'
 
 class HomePage extends React.Component {
 
   constructor(props){
     super(props);
     this.state={
-        loginToken: '123456',
-        userName: "user1",
+        loginToken: null,
+        userName: null,
     }
   }
 
@@ -41,13 +45,17 @@ class HomePage extends React.Component {
           crossorigin="anonymous"
         />
         <div className='main_content'>
-          <UserInfo loginToken={this.state.loginToken} userName={this.state.userName} logOut={this.logoutHandle}/>
+            <Route path='/register' component={RegisterPage}/>
+            <Route path='/usercenter' component={PersonalCenter}/>
+            <Route exact path='/' render={(props)=><UserInfo {...props} loginToken={this.state.loginToken}
+             userName={this.state.userName} logOut={this.logoutHandle} logIn={this.loginHandle}/>}/>  
+            {this.state.loginToken &&
             <div id='options'>
               <Route exact path='/' component={Entry}/>
-              
-            </div>
+            </div>}
             <Route exact path='/freeroom' render={(props)=><FreeRoom/>}/>
             <Route exact path='/classes' render={(props)=><Classes/>}/>
+            <Route path='/classcomments/:id' render={(props)=><ClassComments {...props} userName={this.state.userName} />} />
         </div>
       </BrowserRouter>
     );
@@ -71,38 +79,55 @@ class UserInfo extends React.Component {
     super(props);
   }
 
+  handleRegister = () => {
+    //history.push('/')
+  }
+
   render(){
     return(
       <header id='head'>
           { !this.props.loginToken &&
-          <div>
+          <div id='login-container'>
             <InputGroup className="mb-3">
               <FormControl
-                placeholder="Username"
+                placeholder="用户名"
                 aria-label="Username"
                 aria-describedby="basic-addon1"
               />
             </InputGroup>
             <InputGroup className="mb-3">
               <FormControl
-                placeholder="Password"
+                placeholder="密码"
                 type="password"
                 aria-label="Password"
                 aria-describedby="basic-addon1"
               />
-              <InputGroup.Append>
-                <Button variant="primary">登陆</Button>
-              </InputGroup.Append>
             </InputGroup>
-            
+            <div>
+              <Button className='button' variant="primary" onClick={this.props.logIn}>登陆</Button>
+              <Route path='/*' render={({history}) => (
+                <Button className='button' variant="primary" onClick={() => { history.push('/register') }}>
+                  注册
+                </Button>)} />
+            </div>
           </div>
           }
         { this.props.loginToken &&
         <div id='top_bar'>
           <p id='username'>
-            Welcome! <Link to='/usercenter'>{this.props.userName}</Link>
+            <Card>
+              <Card.Body>
+                <Card.Text>
+                  <Link to='/usercenter'>{this.props.userName}</Link>
+                </Card.Text>
+              </Card.Body>
+            </Card>
+            
           </p>
-          <button onClick={this.props.logOut}>logout</button>            
+          <Route path='/*' render={({history}) => (
+            <Button variant="primary" onClick={() => {this.props.logOut();  history.push('/'); }}>注销</Button>
+          )}/>
+          <Link to="/">Home</Link>
         </div>}
       </header>
       

@@ -1,6 +1,7 @@
 #top_bar
 {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
 }
@@ -33,6 +34,17 @@
     align-items: center;
 }
 
+#login-container
+{
+    margin: auto;
+    padding: 0;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
 .entry_content
 {
     width: 200px;
@@ -50,4 +62,10 @@
 {
     margin: 0 auto;
     width: 280px;
+}
+
+.button
+{
+    margin-left: 20px;
+    margin-right: 20px;
 }

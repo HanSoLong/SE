@@ -131,7 +131,7 @@ class Classes extends React.Component{
                                 <tr>
                                 <td>3</td>
                                 <td>Larry the Bird</td>
-                                <td><Link to='/freeroom'>comment</Link></td>
+                                <td><Link to='/classcomments/123'>comment</Link></td>
                                 <td>@twitter</td>
                                 </tr>
                             </tbody>
