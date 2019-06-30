@@ -10,6 +10,9 @@ import ClassComments from './ClassComments';
 import Card from 'react-bootstrap/Card'
 import RegisterPage from './RegisterPage'
 import PersonalCenter from './PersonalCenter'
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import Navbar from 'react-bootstrap/Navbar'
 
 class HomePage extends React.Component {
 
@@ -20,6 +23,14 @@ class HomePage extends React.Component {
         userName: null,
         email: null
     }
+  }
+
+  componentDidMount(){
+    toast.configure({
+      autoClose: 1000,
+      draggable: false,
+      //etc you get the idea
+    });
   }
 
   logoutHandle = () =>{
@@ -56,15 +67,28 @@ class HomePage extends React.Component {
         loginToken: true
       })
     } else if (json.status === 400) {
-      
+      toast("密码错误")
     } else if (json.status === 500) {
-      
+      toast("用户不存在")
     }
   }
 
   render(){
       return (
       <BrowserRouter>
+        <Navbar bg="dark">
+        <Navbar.Brand href="/">查询系统</Navbar.Brand>
+        </Navbar>
+        <ToastContainer 
+        position="top-left"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnVisibilityChange={false}
+        draggable={false}
+        pauseOnHover={false}/>
         <link
           rel="stylesheet"
           href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"

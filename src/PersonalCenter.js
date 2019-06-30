@@ -6,6 +6,8 @@ import InputGroup from 'react-bootstrap/InputGroup'
 import FormControl from 'react-bootstrap/FormControl'
 import Alert from 'react-bootstrap/Alert'
 import Table from 'react-bootstrap/Table'
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 class PersonalCenter extends React.Component{
 
@@ -25,6 +27,16 @@ class PersonalCenter extends React.Component{
     render(){
         return(
             <div>
+                <ToastContainer 
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnVisibilityChange={false}
+                draggable={false}
+                pauseOnHover={false}/>
                 <Card>
                     <Card.Body>
                         <Card.Text>
@@ -91,7 +103,7 @@ class ChangePassword extends React.Component{
             };
 
             await fetch('/api/updatepassword', fetchOptions)
-
+            toast("修改成功")
         } else {
             this.setState({
                 errTip: status
@@ -116,7 +128,7 @@ class ChangePassword extends React.Component{
     render(){
         return(
             <div>
-
+                
                 <InputGroup>
                     <FormControl
                         ref={(ref) => {this.newPasswrod = ref}}
@@ -165,7 +177,6 @@ class ManageComments extends React.Component{
             "email": this.props.email,
             "courseNo": code,
             "teacherName": teacherName,
-            
         }
 
         const fetchOptions = {
@@ -179,6 +190,7 @@ class ManageComments extends React.Component{
 
         await fetch('/api/deletecomment', fetchOptions)
         await this.getCommentList()
+        toast("删除成功")
     }
 
     getCommentList = async() => {
@@ -291,6 +303,7 @@ class ViewFav extends React.Component{
         };
 
         await fetch('/api/deletecollect', fetchOptions)
+        toast("删除成功")
         this.getFav()
     }
 

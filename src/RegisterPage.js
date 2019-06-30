@@ -13,13 +13,16 @@ class RegisterPage extends React.Component{
         this.state={
             errTip: null,
             verifyPageFlag: false,
+            username: '',
+            email: '',
+            verifyCode: '',
         };
 
         this.username = React.createRef();
         this.email = React.createRef();
         this.password = React.createRef();
         this.confirmPassword = React.createRef();
-
+        this.verifyCode = React.createRef()
     }
 
     localInfoVerify = () => {
@@ -53,16 +56,33 @@ class RegisterPage extends React.Component{
 
     }
 
-    submitRegister = () => {
+    submitRegister = async() => {
         let status = this.localInfoVerify()
+
         if(status == 'clear'){
+            const message = {
+                "email": this.email.value,
+                "password": this.password.value
+            }
             this.setState({
-                errTip: null
+                email: this.email.value,
+                username: this.username.value,
             })
-            //communicate with backend
+            const fetchOptions = {
+                method: 'POST',
+                headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(message)
+            };
+
+            await fetch("/api/register", fetchOptions)
+
             this.setState({
                 verifyPageFlag: true
             })
+
         } else{
             this.setState({
                 errTip: status
@@ -70,15 +90,28 @@ class RegisterPage extends React.Component{
         }
     }
 
-    submitVerifyCode = () => {
-        //communicate with bockend
-        if(false){
-            this.setState({
-                errTip: '验证码错误'
-            })
-        } else {
+    submitVerifyCode = async() => {
+        const message = {
+                "verifyCode": this.verifyCode.value,
+                "userName": this.state.username,
+                "email": this.state.email
+        }
+
+        const fetchOptions = {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(message)
+        };
+
+        const result = await fetch('/api/validatecode', fetchOptions)
+        const json = await result.json()
+        if(json.status === 200){
             this.props.history.push('/')
         }
+        
     }
 
     render(){
@@ -133,7 +166,7 @@ class RegisterPage extends React.Component{
                 <div>
                     <InputGroup className="mb-3">
                         <FormControl
-                            ref={(ref) => {this.username = ref}}
+                            ref={(ref) => {this.verifyCode = ref}}
                             placeholder="邮件验证码"
                             aria-label="verifyCode"
                             aria-describedby="basic-addon1"

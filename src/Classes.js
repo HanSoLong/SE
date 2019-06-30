@@ -6,6 +6,7 @@ import FormControl from 'react-bootstrap/FormControl'
 import './Classes.css'
 import Table from 'react-bootstrap/Table'
 import {Link} from 'react-router-dom'
+import Alert from 'react-bootstrap/Alert'
 
 // const buildingOption = [
 //     { value: 'building_1', label: '第一教学楼' },
@@ -61,7 +62,8 @@ class Classes extends React.Component{
             const json = await response.json()
             console.log(json)
             this.setState({
-                classList: json
+                classList: json,
+                searchErrorTip: false
             })
             
         }else{
@@ -112,7 +114,16 @@ class Classes extends React.Component{
         
         return(
             <div>
-                <ToastContainer autoClose={2000} />
+                <ToastContainer 
+                position="top-left"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnVisibilityChange={false}
+                draggable={false}
+                pauseOnHover={false}/>
                 <div classNmae='contentContainer'>
                     <div className='componentContainer'>
                         <InputGroup className='selectinput'>
@@ -136,7 +147,7 @@ class Classes extends React.Component{
                         <Button variant="primary" onClick={this.sumbitSearch}>查找</Button>
                     </div>
                     <div className='componentContainer'>
-                        {this.state.searchErrorTip && <p>搜索条件不能为空</p>}
+                        {this.state.searchErrorTip && <Alert variant='danger'>搜索条件不能为空</Alert>}
                     </div>
                     <div className='componentContainer searchResult'>
                         <Table striped bordered hover>
