@@ -5,6 +5,7 @@ import Card from 'react-bootstrap/Card'
 import InputGroup from 'react-bootstrap/InputGroup'
 import FormControl from 'react-bootstrap/FormControl'
 import Alert from 'react-bootstrap/Alert'
+import Table from 'react-bootstrap/Table'
 
 class PersonalCenter extends React.Component{
 
@@ -44,6 +45,8 @@ class PersonalCenter extends React.Component{
                     </Card.Body>
                 </Card>
 
+                {this.state.flag === 'view_fav' && <ViewFav email={this.props.email} username={this.props.username} />}
+
                 <Card>
                     <Card.Body>
                         <Card.Text>
@@ -53,7 +56,7 @@ class PersonalCenter extends React.Component{
                     </Card.Body>
                 </Card>
 
-                {this.state.flag === 'manage_comments' && <ManageComments/>}
+                {this.state.flag === 'manage_comments' && <ManageComments email={this.props.email} username={this.props.username} />}
             </div>
         );
     }
@@ -66,18 +69,29 @@ class ChangePassword extends React.Component{
         this.state={
             errTip: null
         }
-        this.oldPasswrod = React.createRef()
         this.newPasswrod = React.createRef()
         this.confimPassword = React.createRef()
     }
 
-    handleSubmit = () => {
+    handleSubmit = async() => {
         let status = this.localPasswordCheck()
         if(status === 'clear'){
-            //communicate with backend
-            this.setState({
-                errTip: null
-            })
+            let message = {
+                "email": this.props.email,
+                "password": this.newPasswrod.value
+            }
+
+            const fetchOptions = {
+                method: 'POST',
+                headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(message)
+            };
+
+            await fetch('/api/updatepassword', fetchOptions)
+
         } else {
             this.setState({
                 errTip: status
@@ -102,15 +116,6 @@ class ChangePassword extends React.Component{
     render(){
         return(
             <div>
-                <InputGroup>
-                    <FormControl
-                        ref={(ref) => {this.oldPasswrod = ref}}
-                        placeholder="旧密码"
-                        type="password"
-                        aria-label="Password"
-                        aria-describedby="basic-addon1"
-                    />
-                </InputGroup>
 
                 <InputGroup>
                     <FormControl
@@ -147,28 +152,60 @@ class ManageComments extends React.Component{
     constructor(props){
         super(props)
         this.state={
-            commentList: null
+            commentList: []
         }
     }
 
     componentWillMount(){
-        //communicate with backend
-        this.setState({
-            commentList: [{'text': 'class1', 'code': '456'}, {'text': 'class2', 'code': '123'}]
-        })
+        this.getCommentList()
     }
 
-    deleteComment = (code) => {
-        //communicate with backend
-        console.log(code)
+    deleteComment = async(code, teacherName, text) => {
+        const message = {
+            "email": this.props.email,
+            "courseNo": code,
+            "teacherName": teacherName,
+            
+        }
+
+        const fetchOptions = {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(message)
+        };
+
+        await fetch('/api/deletecomment', fetchOptions)
+        await this.getCommentList()
+    }
+
+    getCommentList = async() => {
+        const message = {
+            "email": this.props.email
+        }
+
+        const fetchOptions = {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(message)
+        };
+
+        const result = await fetch('/api/getusercomment', fetchOptions)
+        const json = await result.json()
         this.setState({
-            commentList: [{'text': 'class1', 'code': '456'}]
+            commentList: json
         })
     }
 
     render(){
-        let commentList = this.state.commentList.map((data) =>
-            <Comment code={data.code} text={data.text} handleClick={this.deleteComment}/>)
+            let commentList = this.state.commentList.map((data) =>
+                    <Comment code={data.courseNo} text={data.commentText} coursename={data.courseName} teacherName={data.teacherName} handleClick={this.deleteComment}/>)
+        
         return(
             <div>
                 {commentList}
@@ -181,12 +218,13 @@ class ManageComments extends React.Component{
 class Comment extends React.Component{
 
     handleClick= () => {
-        this.props.handleClick(this.props.code)
+        this.props.handleClick(this.props.code, this.props.teacherName, this.props.text)
     }
 
     render(){
         return(
             <Card style={{ width: '18rem' }}>
+                <Card.Header><strong>{this.props.email}</strong></Card.Header>
                 <Card.Body>
                     <Card.Text>
                         {this.props.text}
@@ -203,36 +241,101 @@ class ViewFav extends React.Component{
     constructor(props){
         super(props)
         this.state={
-            favList: null
+            favList: []
         }
     }
 
     componentWillMount(){
-        //communicate with backend
+        this.getFav()
+        // this.setState({
+        //     favList: [{'text': 'class1', 'code': '456'}, {'text': 'class2', 'code': '123'}]
+        // })
+    }
+
+    getFav = async() => {
+        const message={
+            "email": this.props.email
+        }
+
+        const fetchOptions = {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(message)
+        };
+
+        const result = await fetch('/api/querycollect', fetchOptions)
+        const json = await result.json()
+
         this.setState({
-            favList: [{'text': 'class1', 'code': '456'}, {'text': 'class2', 'code': '123'}]
+            favList: json
         })
     }
 
-    deleteComment = (code) => {
-        //communicate with backend
-        console.log(code)
-        this.setState({
-            favList: [{'text': 'class1', 'code': '456'}]
-        })
+    deleteFav = async(courseNo, teacherName) => {
+        const message={
+            "email": this.props.email,
+            "courseNo": courseNo,
+            "teacherName": teacherName
+        }
+
+        const fetchOptions = {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(message)
+        };
+
+        await fetch('/api/deletecollect', fetchOptions)
+        this.getFav()
     }
+
 
     render(){
+        let favList = this.state.favList.map((data) => 
+        <Fav courseNo={data.courseNo} classroom={data.classroom} courseName={data.courseName} teacherName={data.teacherName} lessonDetail={data.lessonDetail} handleClick={this.deleteFav}/>)
         return(
             <div>
-
+                <Table striped bordered hover>
+                            <thead>
+                                <tr>
+                                <th>位置</th>
+                                <th>课程名称</th>
+                                <th>授课教师</th>
+                                <th>上课时间</th>
+                                <th>删除收藏</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {favList}
+                            </tbody>
+                        </Table>
             </div>
         );
     }
 }
 
 class Fav extends React.Component{
-    
+
+    handleClick = () => {
+        this.props.handleClick(this.props.courseNo, this.props.teacherName)
+    }
+
+    render(){
+        return(
+            <tr>
+                <td>{this.props.classroom}</td>
+                <td>{this.props.courseName}</td>
+                <td>{this.props.teacherName}</td>
+                <td>{this.props.lessonDetail}</td>
+                <td><Button onClick={this.handleClick}>删除</Button></td>
+            </tr>
+        );
+    }
 }
 
 export default withRouter(PersonalCenter);

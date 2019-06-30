@@ -1,5 +1,5 @@
 import React from 'react';
-import Select from 'react-select';
+import { ToastContainer, toast } from 'react-toastify';
 import Button from 'react-bootstrap/Button';
 import InputGroup from 'react-bootstrap/InputGroup'
 import FormControl from 'react-bootstrap/FormControl'
@@ -7,22 +7,22 @@ import './Classes.css'
 import Table from 'react-bootstrap/Table'
 import {Link} from 'react-router-dom'
 
-const buildingOption = [
-    { value: 'building_1', label: '第一教学楼' },
-    { value: 'building_2', label: '第二教学楼' },
-    { value: 'building_3', label: '第三教学楼' },
-    { value: 'building_4', label: '第四教学楼' },
-    {value: 'None', label: '不限'}
-  ];
+// const buildingOption = [
+//     { value: 'building_1', label: '第一教学楼' },
+//     { value: 'building_2', label: '第二教学楼' },
+//     { value: 'building_3', label: '第三教学楼' },
+//     { value: 'building_4', label: '第四教学楼' },
+//     {value: 'None', label: '不限'}
+//   ];
 
-const weekOption = [
-    {value: 'Monday', label: '周一'},
-    {value: 'Tuesday', label: '周二'},
-    {value: 'Wednesday', label: '周三'},
-    {value: 'Thursday', label: '周四'},
-    {value: 'Friday', label: '周五'},
-    {value: 'None', label: '不限'}
-];
+// const weekOption = [
+//     {value: 'Monday', label: '周一'},
+//     {value: 'Tuesday', label: '周二'},
+//     {value: 'Wednesday', label: '周三'},
+//     {value: 'Thursday', label: '周四'},
+//     {value: 'Friday', label: '周五'},
+//     {value: 'None', label: '不限'}
+// ];
 
 
 class Classes extends React.Component{
@@ -30,36 +30,40 @@ class Classes extends React.Component{
     constructor(props){
         super(props)
         this.state = {
-            buildingValue: null,
-            weekValue: null,
             searchErrorTip: false,
-            timeOfSemester: null,
+            classList: null,
         };
         this.classNameInput = React.createRef();
         this.teacherInput = React.createRef();
     }
 
-    buildingHandler = selectedOptions =>{
-        this.setState({
-            buildingValue: selectedOptions
-        });
-    }
+    notify = () => toast("收藏成功");
 
-    weekHandler = selectedOptions =>{
-        this.setState({
-            weekValue: selectedOptions
-        });
-    }
+    sumbitSearch = async() => {
 
-    sumbitSearch = ()=>{
-        const className = this.classNameInput.value
-        const teacherName = this.teacherInput.value
-        console.log(className, teacherName)
-        if((this.state.weekValue || this.state.buildingValue) && (this.state.weekValue.value!=='None' || this.state.buildingValue.value!=='None')){
+        if(this.classNameInput.value !== '' || this.teacherInput.value !== ''){
+            
+            const message = {
+                "courseName": this.classNameInput.value,
+                "teacherName" : this.teacherInput.value,
+            }
+            
+            const fetchOptions = {
+                method: 'POST',
+                headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(message)
+            };
+            
+            const response = await fetch('/api/getcourse', fetchOptions)
+            const json = await response.json()
+            console.log(json)
             this.setState({
-                searchErrorTip: false
+                classList: json
             })
-            //submit
+            
         }else{
             this.setState({
                 searchErrorTip: true
@@ -67,9 +71,48 @@ class Classes extends React.Component{
         }
     }
 
+    addFavClass = async(courseNo, email, teacherName) => {
+        const message = {
+            "courseNo": courseNo,
+            "email": email,
+            "teacherName": teacherName,
+        }
+
+        const fetchOptions = {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(message)
+        };
+
+        await fetch('/api/addcollect', fetchOptions)
+        this.notify()
+    }
+
+    classListMap = (data) => {
+        let params = `search?code=${data.courseNo}&teacher=${data.teacherName}&email=${this.props.email}`
+        let email = this.props.email
+        return <tr>
+                    <td>{data.classroom}</td>
+                    <td>{data.courseName}</td>
+                    <td>{data.teacherName}</td>
+                    <td>{data.lessonDetail}</td>
+                    <td><Link to={`/classcomments/${params}`} target="_blank">查看</Link></td>
+                    <td><Button onClick={()=>this.addFavClass(data.courseNo, email, data.teacherName)}>添加</Button></td>
+                </tr>
+    }
+
     render(){
+        let classRows = <div></div>
+        if(this.state.classList !== null){
+            classRows = this.state.classList.map(this.classListMap)
+        }
+        
         return(
             <div>
+                <ToastContainer autoClose={2000} />
                 <div classNmae='contentContainer'>
                     <div className='componentContainer'>
                         <InputGroup className='selectinput'>
@@ -89,16 +132,6 @@ class Classes extends React.Component{
                             aria-describedby="basic-addon1"
                             />
                         </InputGroup>
-
-                        <Select className='select'
-                        value={this.state.buildingValue}
-                        onChange={this.buildingHandler}
-                        options={buildingOption}/>
-
-                        <Select className='select'
-                        value={this.state.weekValue}
-                        onChange={this.weekHandler}
-                        options = {weekOption}/>
                         
                         <Button variant="primary" onClick={this.sumbitSearch}>查找</Button>
                     </div>
@@ -109,31 +142,16 @@ class Classes extends React.Component{
                         <Table striped bordered hover>
                             <thead>
                                 <tr>
-                                <th>#</th>
-                                <th>First Name</th>
-                                <th>Last Name</th>
-                                <th>Username</th>
+                                <th>位置</th>
+                                <th>课程名称</th>
+                                <th>授课教师</th>
+                                <th>上课时间</th>
+                                <th>评论</th>
+                                <th>收藏</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                <td>1</td>
-                                <td>Mark</td>
-                                <td>Otto</td>
-                                <td>@mdo</td>
-                                </tr>
-                                <tr>
-                                <td>2</td>
-                                <td>Jacob</td>
-                                <td>Thornton</td>
-                                <td>@fat</td>
-                                </tr>
-                                <tr>
-                                <td>3</td>
-                                <td>Larry the Bird</td>
-                                <td><Link to='/classcomments/123'>comment</Link></td>
-                                <td>@twitter</td>
-                                </tr>
+                                {classRows}
                             </tbody>
                         </Table>
                     </div>

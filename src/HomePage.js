@@ -18,6 +18,7 @@ class HomePage extends React.Component {
     this.state={
         loginToken: null,
         userName: null,
+        email: null
     }
   }
 
@@ -28,11 +29,37 @@ class HomePage extends React.Component {
     })
   }
 
-  loginHandle = () =>{
-    this.setState({
-      loginToken: '123456',
-      userName: "user1",
-    })
+  loginHandle = async(email, password) =>{
+    const message={
+      "email": email,
+      "password": password
+    }
+    
+    const fetchOptions = {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(message)
+    };
+
+    console.log(fetchOptions)
+
+    const result = await fetch('/api/login', fetchOptions);
+    const json = await result.json()
+    console.log(json)
+    if(json.status === 200 ){
+      this.setState({
+        email: json.email,
+        userName: json.studentName,
+        loginToken: true
+      })
+    } else if (json.status === 400) {
+      
+    } else if (json.status === 500) {
+      
+    }
   }
 
   render(){
@@ -46,7 +73,7 @@ class HomePage extends React.Component {
         />
         <div className='main_content'>
             <Route path='/register' component={RegisterPage}/>
-            <Route path='/usercenter' component={PersonalCenter}/>
+            <Route path='/usercenter' render={(props)=><PersonalCenter {...props} email={this.state.email} username={this.state.userName}/>}/>
             <Route exact path='/' render={(props)=><UserInfo {...props} loginToken={this.state.loginToken}
              userName={this.state.userName} logOut={this.logoutHandle} logIn={this.loginHandle}/>}/>  
             {this.state.loginToken &&
@@ -54,13 +81,12 @@ class HomePage extends React.Component {
               <Route exact path='/' component={Entry}/>
             </div>}
             <Route exact path='/freeroom' render={(props)=><FreeRoom/>}/>
-            <Route exact path='/classes' render={(props)=><Classes/>}/>
+            <Route exact path='/classes' render={(props)=><Classes email={this.state.email}/>}/>
             <Route path='/classcomments/:id' render={(props)=><ClassComments {...props} userName={this.state.userName} />} />
         </div>
       </BrowserRouter>
     );
   }
-  
 }
 
 class Entry extends React.Component {
@@ -77,10 +103,12 @@ class Entry extends React.Component {
 class UserInfo extends React.Component {
   constructor(props){
     super(props);
+    this.email = React.createRef();
+    this.password = React.createRef();
   }
 
-  handleRegister = () => {
-    //history.push('/')
+  loginHandle = () => {
+    this.props.logIn(this.email.value, this.password.value);
   }
 
   render(){
@@ -90,13 +118,15 @@ class UserInfo extends React.Component {
           <div id='login-container'>
             <InputGroup className="mb-3">
               <FormControl
-                placeholder="用户名"
+                ref={(ref) => {this.email = ref}}
+                placeholder="电子邮箱"
                 aria-label="Username"
                 aria-describedby="basic-addon1"
               />
             </InputGroup>
             <InputGroup className="mb-3">
               <FormControl
+                ref={(ref)=>{this.password = ref}}
                 placeholder="密码"
                 type="password"
                 aria-label="Password"
@@ -104,7 +134,7 @@ class UserInfo extends React.Component {
               />
             </InputGroup>
             <div>
-              <Button className='button' variant="primary" onClick={this.props.logIn}>登陆</Button>
+              <Button className='button' variant="primary" onClick={this.loginHandle}>登陆</Button>
               <Route path='/*' render={({history}) => (
                 <Button className='button' variant="primary" onClick={() => { history.push('/register') }}>
                   注册
