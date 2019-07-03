@@ -7,7 +7,7 @@ import './Classes.css'
 import Table from 'react-bootstrap/Table'
 import {Link} from 'react-router-dom'
 import Alert from 'react-bootstrap/Alert'
-
+import GeoModule from './GeoModule'
 // const buildingOption = [
 //     { value: 'building_1', label: '第一教学楼' },
 //     { value: 'building_2', label: '第二教学楼' },
@@ -39,6 +39,10 @@ class Classes extends React.Component{
     }
 
     notify = () => toast("收藏成功");
+
+    getGeoLocation = () => {
+        
+    }
 
     sumbitSearch = async() => {
 
@@ -101,7 +105,7 @@ class Classes extends React.Component{
                     <td>{data.courseName}</td>
                     <td>{data.teacherName}</td>
                     <td>{data.lessonDetail}</td>
-                    <td><Link to={`/classcomments/${params}`} target="_blank">查看</Link></td>
+                    <td><Link to={`/classcomments/${params}`} >查看</Link></td>
                     <td><Button onClick={()=>this.addFavClass(data.courseNo, email, data.teacherName)}>添加</Button></td>
                 </tr>
     }
@@ -166,6 +170,7 @@ class Classes extends React.Component{
                             </tbody>
                         </Table>
                     </div>
+                    <GeoModule />
                 </div>
             </div>
         )

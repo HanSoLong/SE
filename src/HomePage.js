@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Route, Link, Redirect } from "react-router-dom";
+import { BrowserRouter, Route, Link, Switch } from "react-router-dom";
 import './HomePage.css'
 import FreeRoom from './FreeRoom'
 import InputGroup from 'react-bootstrap/InputGroup'
@@ -77,7 +77,7 @@ class HomePage extends React.Component {
       return (
       <BrowserRouter>
         <Navbar bg="dark">
-        <Navbar.Brand href="/">查询系统</Navbar.Brand>
+          <Navbar.Brand href="/">查询系统</Navbar.Brand>
         </Navbar>
         <ToastContainer 
         position="top-left"
@@ -96,10 +96,16 @@ class HomePage extends React.Component {
           crossorigin="anonymous"
         />
         <div className='main_content'>
+
+          <Switch>
             <Route path='/register' component={RegisterPage}/>
+            <Route path='/recoverpassword' component={RecoverPassword}/>
+            <Route path='/' render={(props)=><UserInfo {...props} loginToken={this.state.loginToken}
+             userName={this.state.userName} logOut={this.logoutHandle} logIn={this.loginHandle}/>}/>
+          </Switch>
+              
+            
             <Route path='/usercenter' render={(props)=><PersonalCenter {...props} email={this.state.email} username={this.state.userName}/>}/>
-            <Route exact path='/' render={(props)=><UserInfo {...props} loginToken={this.state.loginToken}
-             userName={this.state.userName} logOut={this.logoutHandle} logIn={this.loginHandle}/>}/>  
             {this.state.loginToken &&
             <div id='options'>
               <Route exact path='/' component={Entry}/>
@@ -135,6 +141,10 @@ class UserInfo extends React.Component {
     this.props.logIn(this.email.value, this.password.value);
   }
 
+  recoverPassword = () => {
+    this.props.history.push('/recoverpassword')
+  }
+
   render(){
     return(
       <header id='head'>
@@ -156,9 +166,12 @@ class UserInfo extends React.Component {
                 aria-label="Password"
                 aria-describedby="basic-addon1"
               />
+              <InputGroup.Append>
+                        <Button variant="primary" onClick={this.loginHandle}>登录</Button>
+              </InputGroup.Append>
             </InputGroup>
             <div>
-              <Button className='button' variant="primary" onClick={this.loginHandle}>登陆</Button>
+              <Button className='button' variant="primary" onClick={this.recoverPassword}>找回密码</Button>
               <Route path='/*' render={({history}) => (
                 <Button className='button' variant="primary" onClick={() => { history.push('/register') }}>
                   注册
@@ -185,6 +198,80 @@ class UserInfo extends React.Component {
         </div>}
       </header>
       
+    );
+  }
+}
+
+
+class RecoverPassword extends React.Component{
+  constructor(props){
+    super(props)
+    this.state = {
+      second: 0
+    }
+  }
+
+  componentDidMount(){
+    setInterval(this.timer, 1000)
+  }
+
+  timer = () => {
+    if(this.state.second > 0){
+      this.setState({
+        second: this.state.second - 1,
+      })
+    }
+  }
+
+  startTimer = () => {
+    this.setState({
+      second: 60
+    })
+  }
+
+  render(){
+    return(
+      <div>
+        <InputGroup className="mb-3">
+            <FormControl
+              ref={(ref) => {this.email = ref}}
+              placeholder="电子邮箱"
+              aria-describedby="basic-addon1"
+            />
+            <InputGroup.Append>
+              {(this.state.second === 0 ) && <Button variant="primary" onClick={this.startTimer}>发送</Button>}
+              {(this.state.second !== 0 ) && <Button variant="primary" disabled>发送({this.state.second})</Button>}
+            </InputGroup.Append>
+        </InputGroup>
+
+        <InputGroup className="mb-3">
+            <FormControl
+              ref={(ref) => {this.email = ref}}
+              placeholder="验证码"
+              aria-describedby="basic-addon1"
+            />
+        </InputGroup>
+
+        <InputGroup className="mb-3">
+            <FormControl
+              ref={(ref) => {this.email = ref}}
+              placeholder="新密码"
+              aria-describedby="basic-addon1"
+            />
+        </InputGroup>
+
+        <InputGroup className="mb-3">
+            <FormControl
+              ref={(ref) => {this.email = ref}}
+              placeholder="确认密码"
+              aria-describedby="basic-addon1"
+            />
+        </InputGroup>
+
+        <Button>
+          提交
+        </Button>
+      </div>
     );
   }
 }

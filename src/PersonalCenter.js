@@ -177,6 +177,7 @@ class ManageComments extends React.Component{
             "email": this.props.email,
             "courseNo": code,
             "teacherName": teacherName,
+            "commentText": text,
         }
 
         const fetchOptions = {
