@@ -1,5 +1,6 @@
 #top_bar
 {
+    margin: 10px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -8,7 +9,7 @@
 
 #username
 {
-    margin: 0;
+    margin: 10px;
     width: auto;
     height: auto;
     display: inline-flex;

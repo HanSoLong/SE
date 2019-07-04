@@ -12,7 +12,11 @@ import RegisterPage from './RegisterPage'
 import PersonalCenter from './PersonalCenter'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Navbar from 'react-bootstrap/Navbar'
+import Navbar from 'react-bootstrap/Navbar';
+import sha256 from "sha256";
+import Alert from 'react-bootstrap/Alert'
+import GeoModule from './GeoModule'
+
 
 class HomePage extends React.Component {
 
@@ -55,7 +59,6 @@ class HomePage extends React.Component {
       body: JSON.stringify(message)
     };
 
-    console.log(fetchOptions)
 
     const result = await fetch('/api/login', fetchOptions);
     const json = await result.json()
@@ -67,8 +70,10 @@ class HomePage extends React.Component {
         loginToken: true
       })
     } else if (json.status === 400) {
+      console.log('1')
       toast("密码错误")
     } else if (json.status === 500) {
+      console.log('2')
       toast("用户不存在")
     }
   }
@@ -99,7 +104,7 @@ class HomePage extends React.Component {
 
           <Switch>
             <Route path='/register' component={RegisterPage}/>
-            <Route path='/recoverpassword' component={RecoverPassword}/>
+            <Route path='/recoverpassword' render={(props) => <RecoverPassword {...props} />}/>
             <Route path='/' render={(props)=><UserInfo {...props} loginToken={this.state.loginToken}
              userName={this.state.userName} logOut={this.logoutHandle} logIn={this.loginHandle}/>}/>
           </Switch>
@@ -123,8 +128,8 @@ class Entry extends React.Component {
   render(){
     return(
       <div>
-        <Link to="/freeroom" className='entry_content'>FreeRoom</Link>
-        <Link to="/classes" className='entry_content'>Classes</Link>
+        <Link to="/freeroom" className='entry_content'>空教室</Link>
+        <Link to="/classes" className='entry_content'>课程</Link>
       </div>
     );
   }
@@ -138,7 +143,7 @@ class UserInfo extends React.Component {
   }
 
   loginHandle = () => {
-    this.props.logIn(this.email.value, this.password.value);
+    this.props.logIn(this.email.value, sha256(this.password.value));
   }
 
   recoverPassword = () => {
@@ -181,7 +186,8 @@ class UserInfo extends React.Component {
           }
         { this.props.loginToken &&
         <div id='top_bar'>
-          <p id='username'>
+
+          <div id='username'>
             <Card>
               <Card.Body>
                 <Card.Text>
@@ -189,12 +195,14 @@ class UserInfo extends React.Component {
                 </Card.Text>
               </Card.Body>
             </Card>
-            
-          </p>
-          <Route path='/*' render={({history}) => (
-            <Button variant="primary" onClick={() => {this.props.logOut();  history.push('/'); }}>注销</Button>
-          )}/>
+          </div>
+
+            <Route path='/*' render={({history}) => (
+              <Button variant="primary" onClick={() => {this.props.logOut();  history.push('/'); }} >注销</Button>
+            )}/>
+
           <Link to="/">Home</Link>
+          <GeoModule />
         </div>}
       </header>
       
@@ -207,8 +215,13 @@ class RecoverPassword extends React.Component{
   constructor(props){
     super(props)
     this.state = {
-      second: 0
+      second: 0,
+      errTip: ''
     }
+    this.emailInput = React.createRef()
+    this.newPasswrod = React.createRef()
+    this.confimPassword = React.createRef()
+    this.verifyCode = React.createRef()
   }
 
   componentDidMount(){
@@ -223,10 +236,86 @@ class RecoverPassword extends React.Component{
     }
   }
 
-  startTimer = () => {
-    this.setState({
-      second: 60
-    })
+  sendVerifyCode = async() => {
+    const emailRegular = /^([a-zA-Z0-9]+[_|\_|\.]?)*[a-zA-Z0-9]+@([a-zA-Z0-9]+[_|\_|\.]?)*[a-zA-Z0-9]+\.[a-zA-Z]{2,3}$/;
+    if(!emailRegular.test(this.emailInput.value)){
+      this.setState({
+        errTip: "邮箱地址格式错误"
+      })
+    } else {
+      this.setState({
+        errTip: "",
+        second: 60
+      })
+      const message = {
+        "email": this.emailInput.value
+      }
+
+      const fetchOptions = {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(message)
+      }
+      const result = await fetch("/api/storevalidatecode", fetchOptions)
+    }
+  }
+
+  submitReset = async() => {
+    let status = this.localPasswordCheck()
+    if(status === 'clear'){
+        this.setState({
+          errTip: ''
+        })
+        const message = {
+          "email": this.emailInput.value,
+          "validateCode": this.verifyCode.value,
+          "password": sha256(this.newPasswrod.value)
+        }
+
+        const fetchOptions = {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(message)
+        }
+
+        const result = await fetch('/api/updatepassword', fetchOptions)
+        const json = await result.json()
+        if(json.status === 200){
+          this.props.history.push('/')
+        }
+
+    } else {
+      this.setState({
+        errTip: status
+      })
+
+    }
+    
+  }
+
+  localPasswordCheck = () => {
+    const passwordRegular = /[a-zA-Z0-9]{6,15}/;
+    const emailRegular = /^([a-zA-Z0-9]+[_|\_|\.]?)*[a-zA-Z0-9]+@([a-zA-Z0-9]+[_|\_|\.]?)*[a-zA-Z0-9]+\.[a-zA-Z]{2,3}$/;
+
+    if(!emailRegular.test(this.emailInput.value)){
+      return '邮箱地址格式错误'
+    }
+
+    if(!passwordRegular.test(this.newPasswrod.value)){
+        return '新密码应为6-16位字母数字'
+    }
+
+    if(this.newPasswrod.value !== this.confimPassword.value){
+        return '两次输入密码不符'
+    }
+    
+    return 'clear'
   }
 
   render(){
@@ -234,19 +323,19 @@ class RecoverPassword extends React.Component{
       <div>
         <InputGroup className="mb-3">
             <FormControl
-              ref={(ref) => {this.email = ref}}
+              ref={(ref) => {this.emailInput = ref}}
               placeholder="电子邮箱"
               aria-describedby="basic-addon1"
             />
             <InputGroup.Append>
-              {(this.state.second === 0 ) && <Button variant="primary" onClick={this.startTimer}>发送</Button>}
+              {(this.state.second === 0 ) && <Button variant="primary" onClick={this.sendVerifyCode}>发送</Button>}
               {(this.state.second !== 0 ) && <Button variant="primary" disabled>发送({this.state.second})</Button>}
             </InputGroup.Append>
         </InputGroup>
 
         <InputGroup className="mb-3">
             <FormControl
-              ref={(ref) => {this.email = ref}}
+              ref={(ref) => {this.verifyCode = ref}}
               placeholder="验证码"
               aria-describedby="basic-addon1"
             />
@@ -254,7 +343,7 @@ class RecoverPassword extends React.Component{
 
         <InputGroup className="mb-3">
             <FormControl
-              ref={(ref) => {this.email = ref}}
+              ref={(ref) => {this.newPasswrod = ref}}
               placeholder="新密码"
               aria-describedby="basic-addon1"
             />
@@ -262,13 +351,15 @@ class RecoverPassword extends React.Component{
 
         <InputGroup className="mb-3">
             <FormControl
-              ref={(ref) => {this.email = ref}}
+              ref={(ref) => {this.confimPassword = ref}}
               placeholder="确认密码"
               aria-describedby="basic-addon1"
             />
         </InputGroup>
 
-        <Button>
+        {this.state.errTip!=="" && <Alert variant='danger'>{this.state.errTip}</Alert>}
+
+        <Button onClick={this.submitReset}>
           提交
         </Button>
       </div>

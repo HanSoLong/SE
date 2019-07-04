@@ -8,6 +8,7 @@ import Alert from 'react-bootstrap/Alert'
 import Table from 'react-bootstrap/Table'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import sha256 from "sha256";
 
 class PersonalCenter extends React.Component{
 
@@ -24,29 +25,25 @@ class PersonalCenter extends React.Component{
         })
     }
 
+    goback = () => {
+        this.setState({
+            flag: ''
+        })
+    }
+
     render(){
         return(
             <div>
-                <ToastContainer 
-                position="top-right"
-                autoClose={3000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnVisibilityChange={false}
-                draggable={false}
-                pauseOnHover={false}/>
                 <Card>
                     <Card.Body>
                         <Card.Text>
                             更改密码
-                            <Button variant='primary' onClick={() => {this.handleClick('change_password')}}> 开始 </Button>
+                            <Button variant='primary' onClick={() => {this.handleClick('change_password')} } > 开始 </Button>
                         </Card.Text>
                     </Card.Body>
                 </Card>
                 
-                {this.state.flag === 'change_password' && <ChangePassword/>}
+                {this.state.flag === 'change_password' && <ChangePassword email={this.props.email} setFlag={this.goback}/>}
 
                 <Card>
                     <Card.Body>
@@ -88,11 +85,11 @@ class ChangePassword extends React.Component{
     handleSubmit = async() => {
         let status = this.localPasswordCheck()
         if(status === 'clear'){
+            
             let message = {
                 "email": this.props.email,
-                "password": this.newPasswrod.value
+                "password": sha256(this.newPasswrod.value)
             }
-
             const fetchOptions = {
                 method: 'POST',
                 headers: {
@@ -102,8 +99,11 @@ class ChangePassword extends React.Component{
                 body: JSON.stringify(message)
             };
 
-            await fetch('/api/updatepassword', fetchOptions)
+            const result = await fetch('/api/updatepassword', fetchOptions)
+            const json = await result.json
+            console.log(json)
             toast("修改成功")
+            this.props.setFlag()
         } else {
             this.setState({
                 errTip: status
@@ -237,7 +237,7 @@ class Comment extends React.Component{
     render(){
         return(
             <Card style={{ width: '18rem' }}>
-                <Card.Header><strong>{this.props.email}</strong></Card.Header>
+                <Card.Header><strong>{this.props.coursename}---{this.props.teacherName}</strong></Card.Header>
                 <Card.Body>
                     <Card.Text>
                         {this.props.text}

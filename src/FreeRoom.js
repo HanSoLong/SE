@@ -7,29 +7,25 @@ import InputGroup from 'react-bootstrap/InputGroup'
 import './FreeRoom.css'
 
 const buildingOption = [
-    { value: 'building_1', label: '第一教学楼' },
-    { value: 'building_2', label: '第二教学楼' },
-    { value: 'building_3', label: '第三教学楼' },
-    { value: 'building_4', label: '第四教学楼' },
-    {value: 'None', label: '不限'}
+    { value: '1教', label: '第一教学楼' },
+    { value: '3教', label: '第三教学楼' },
   ];
 
 const weekOption = [
-    {value: 'Monday', label: '周一'},
-    {value: 'Tuesday', label: '周二'},
-    {value: 'Wednesday', label: '周三'},
-    {value: 'Thursday', label: '周四'},
-    {value: 'Friday', label: '周五'},
-    {value: 'None', label: '不限'}
+    {value: '1', label: '周一'},
+    {value: '2', label: '周二'},
+    {value: '3', label: '周三'},
+    {value: '4', label: '周四'},
+    {value: '5', label: '周五'},
 ];
 
 const timeOption = [
-    {value: '1/2', label: '一/二节'},
-    {value: '3/4', label: '三/四节'},
-    {value: '5/6', label: '五/六节'},
-    {value: '7/8', label: '七/八节'},
-    {value: '9/10', label: '九/十节'},
-    {value: '11/12', label:'十一/十二节'}
+    {value: '1', label: '一/二节'},
+    {value: '2', label: '三/四节'},
+    {value: '3', label: '五/六节'},
+    {value: '4', label: '七/八节'},
+    {value: '5', label: '九/十节'},
+    {value: '6', label:'十一/十二节'}
 ]
 
 class FreeRoom extends React.Component{
@@ -37,10 +33,9 @@ class FreeRoom extends React.Component{
     constructor(props){
         super(props)
         this.state = {
-            buildingValue: null,
-            weekValue: null,
-            semesterOption: null,
-            time: null,
+            buildingValue: {value: '', label: '位置'},
+            weekValue: {value: '', label: '星期'},
+            time: {value: '', label: '时间'},
             freeRooms: [],
             searchErrorTip: false,
         };
@@ -65,15 +60,19 @@ class FreeRoom extends React.Component{
         })
     }
 
-    sumbitSearch = async ()=>{
-        if((this.state.weekValue || this.state.buildingValue)
-         && (this.state.weekValue.value!=='None' || this.state.buildingValue.value!=='None')
-         && this.semesterInput.value && this.state.time){
+    sumbitSearch = async () =>{
+        
+        if( this.semesterInput.value && (this.state.buildingValue && this.state.buildingValue.value) &&
+         (this.state.weekValue && this.state.weekValue.value) && (this.state.time && this.state.time.value) ){
+
+            this.setState({
+                searchErrorTip: false,
+            })
 
             let message = {
-                'buildingNo': this.state.buildingValue,
-                'day': this.state.weekValue,
-                'lessonPeriod': this.state.time,
+                'buildingNo': this.state.buildingValue.value,
+                'day': this.state.weekValue.value,
+                'lessonPeriod': this.state.time.value,
                 'weekNo': this.semesterInput.value,
             }
 
@@ -86,11 +85,10 @@ class FreeRoom extends React.Component{
                 body: JSON.stringify(message)
             };
 
-            const result = await fetch('/api/getfreeroom', fetchOptions)
+            const result = await fetch('/api/queryclassroom', fetchOptions)
             let responseJson  = await result.json()
 
             this.setState({
-                searchErrorTip: false,
                 freeRooms: responseJson
             })
             //submit
@@ -102,7 +100,10 @@ class FreeRoom extends React.Component{
     }
 
     render(){
-        const freeRoomListItem = this.state.freeRooms.map((room)=><ListGroup.Item>{room}</ListGroup.Item>)
+        let freeRoomListItem = <div></div>
+        if (this.state.freeRooms.length > 0){
+            freeRoomListItem = this.state.freeRooms.map((room)=><ListGroup.Item>{room.classroom}</ListGroup.Item>)
+        }
         return(
             <div>
                 <div className='selectContainer'>

@@ -5,6 +5,7 @@ import Button from 'react-bootstrap/Button';
 import React from 'react';
 import Alert from 'react-bootstrap/Alert';
 import { withRouter } from 'react-router-dom';
+import sha256 from "sha256"
 
 class RegisterPage extends React.Component{
 
@@ -62,7 +63,7 @@ class RegisterPage extends React.Component{
         if(status == 'clear'){
             const message = {
                 "email": this.email.value,
-                "password": this.password.value
+                "password": sha256(this.password.value)
             }
             this.setState({
                 email: this.email.value,

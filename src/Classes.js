@@ -40,10 +40,6 @@ class Classes extends React.Component{
 
     notify = () => toast("收藏成功");
 
-    getGeoLocation = () => {
-        
-    }
-
     sumbitSearch = async() => {
 
         if(this.classNameInput.value !== '' || this.teacherInput.value !== ''){
@@ -64,7 +60,6 @@ class Classes extends React.Component{
             
             const response = await fetch('/api/getcourse', fetchOptions)
             const json = await response.json()
-            console.log(json)
             this.setState({
                 classList: json,
                 searchErrorTip: false
@@ -93,8 +88,17 @@ class Classes extends React.Component{
             body: JSON.stringify(message)
         };
 
-        await fetch('/api/addcollect', fetchOptions)
-        this.notify()
+        const result = await fetch('/api/addcollect', fetchOptions)
+        const json = await result.json()
+        console.log(json)
+        if(json.status === 200){
+            toast("收藏成功")
+        } else if (json.status === 400){
+            toast("该课程已被收藏")
+        } else{
+            toast("未知错误")
+        }
+        
     }
 
     classListMap = (data) => {
@@ -170,7 +174,6 @@ class Classes extends React.Component{
                             </tbody>
                         </Table>
                     </div>
-                    <GeoModule />
                 </div>
             </div>
         )
